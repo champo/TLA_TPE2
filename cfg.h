@@ -1,5 +1,5 @@
-#ifndef __RG2NFA_H__
-#define __RG2NFA_H__
+#ifndef __CFG_H__
+#define __CFG_H__
 
 
 struct grammar {
@@ -51,5 +51,5 @@ void print_grammar( FILE *file, struct grammar *grammar );
 struct grammar* clean_grammar( struct grammar *grammar );
 
 
-#endif /* __RG2NFA_H__ */
+#endif /* __CFG_H__ */
 

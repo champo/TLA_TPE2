@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
-#include "rg2nfa.h"
+#include "cfg.h"
 
 
 void memory_error( void ) {
