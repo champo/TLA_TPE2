@@ -175,8 +175,6 @@ int main ( int argc, char **argv ) {
     if ( !grlex() ) {
 
         print_parser(stdout, grlval);
-
-        //print_grammar( stdout, grlval );
         free_grammar( grlval );
     }
 
@@ -250,6 +248,7 @@ void print_main(FILE* file, struct grammar* grammar) {
     fprintf(file, "\t\tprintf(\"%%s doesn't belong\\n\", argv[1]);\n");
     fprintf(file, "\t}\n");
 
+    fprintf(file, "\treturn 0;\n");
     fprintf(file, "}\n");
 }
 
@@ -257,6 +256,8 @@ void print_declarations(FILE* file, struct grammar* grammar) {
 
     fprintf(file, "#include <stdio.h>\n");
     fprintf(file, "#include <stdlib.h>\n");
+    fprintf(file, "#include <string.h>\n");
+    fprintf(file, "#include <ctype.h>\n");
 
     fprintf(file, "char* process(char* string, char* production);\n");
 
@@ -283,6 +284,7 @@ void print_non_terminal_function(FILE* file, struct grammar* grammar, char non_t
 
     }
 
+    fprintf(file, "\treturn NULL;\n");
     fprintf(file, "}\n");
 
 }
