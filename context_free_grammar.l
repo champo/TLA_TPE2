@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
-#include "rg2nfa.h"
+#include "cfg.h"
 
 extern struct grammar *grlval;
 
@@ -96,7 +96,7 @@ def_delimiter_initial_sym_end   ","{whitespace}*"{"
 <PRODUCTIONS_RIGHT_COMMA,PRODUCTIONS_LEFT>{def_end} { ok = true; BEGIN( DEF_END ); }
 
 
-<DEF_END><<EOF>> { return grlval->type == NON_REGULAR_GRAMMAR; }
+<DEF_END><<EOF>> { return 0; }
 
 <INITIAL,DEF_BEGIN,NON_TERMINALS,NON_TERMINALS_COMMA,TERMINALS,TERMINALS_COMMA,INITIAL_SYM,INITIAL_SYM_END,PRODUCTIONS_LEFT,PRODUCTIONS_ARROW,PRODUCTIONS_RIGHT,PRODUCTIONS_RIGHT_COMMA><<EOF>> { return grerror( "unexpected end of file" ); }
 
@@ -189,7 +189,6 @@ static void add_production_left( void ) {
 static void add_production_right( void ) {
 
     char **right = grammar_new_production( grlval, last_left_production );
-    int len = *right ? strlen(*right) : 0;
 
     for ( int pos_text = 0, pos_right = 0; pos_text < (int)grleng; pos_text++ ) {
 
@@ -197,7 +196,7 @@ static void add_production_right( void ) {
              grtext[ pos_text ] != '\f' && grtext[ pos_text ] != '\v' &&
              grtext[ pos_text ] != '\n' && grtext[ pos_text ] != '\r' ) {
 
-            char *temp = realloc( *right, ++len + 1 );
+            char *temp = realloc( *right, ++pos_right + 1 );
 
             if ( !temp ) {
 
@@ -207,8 +206,8 @@ static void add_production_right( void ) {
 
             *right = temp;
 
-            *right[ len - 1 ] = grtext[ pos_text ];
-            *right[ len ] = 0;
+            (*right)[ pos_right - 1 ] = grtext[ pos_text ];
+            (*right)[ pos_right ] = 0;
         }
     }
 }

@@ -174,6 +174,7 @@ int main ( int argc, char **argv ) {
 
     if ( !grlex() ) {
 
+        print_grammar( stdout, grlval );
         free_grammar( grlval );
     }
 
