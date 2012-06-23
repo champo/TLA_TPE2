@@ -188,7 +188,8 @@ static void add_production_left( void ) {
 
 static void add_production_right( void ) {
 
-    char (*right)[2] = grammar_new_production( grlval, last_left_production );
+    char **right = grammar_new_production( grlval, last_left_production );
+    int len = *right ? strlen(*right) : 0;
 
     for ( int pos_text = 0, pos_right = 0; pos_text < (int)grleng; pos_text++ ) {
 
@@ -196,37 +197,18 @@ static void add_production_right( void ) {
              grtext[ pos_text ] != '\f' && grtext[ pos_text ] != '\v' &&
              grtext[ pos_text ] != '\n' && grtext[ pos_text ] != '\r' ) {
 
-            switch ( pos_right++ ) {
+            char *temp = realloc( *right, ++len + 1 );
 
-                case 0:
+            if ( !temp ) {
 
-                    (*right)[0] = grtext[ pos_text ];
-
-                    if ( (*right)[0] == '\\' )
-                        grlval->empty = last_left_production;
-
-                    break;
-
-                case 1:
-
-                    (*right)[1] = grtext[ pos_text ];
-
-                    if ( !( ( (*right)[0] < 'a' ) ^ ( (*right)[1] < 'a' ) ) )
-                        grlval->type = NON_REGULAR_GRAMMAR;
-                    else
-                    if ( (*right)[0] < 'a' )
-                        grlval->type |= LEFT_REGULAR_GRAMMAR;
-                    else
-                        grlval->type |= RIGHT_REGULAR_GRAMMAR;
-
-                    break;
-
-                default:
-
-                    grlval->type = NON_REGULAR_GRAMMAR;
-
-                    break;
+                free_grammar( grlval );
+                memory_error();
             }
+
+            *right = temp;
+
+            *right[ len - 1 ] = grtext[ pos_text ];
+            *right[ len ] = 0;
         }
     }
 }
@@ -234,19 +216,9 @@ static void add_production_right( void ) {
 
 int grwrap( void ) {
 
-    const char* out[] = {
-
-        [ LEFT_REGULAR_GRAMMAR ]  = "left ",
-        [ RIGHT_REGULAR_GRAMMAR ] = "right ",
-        [ NON_REGULAR_GRAMMAR ]   = "non-",
-    };
-
     if ( ok ) {
 
-        printf( "the input is a valid %sregular grammar\n", out[ grlval->type ] );
-
-        if ( grlval->type == NON_REGULAR_GRAMMAR )
-            grerror( "non-regular grammar" );
+        printf( "the input is a valid context free grammar\n" );
     }
 
     return 1;
