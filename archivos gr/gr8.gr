@@ -1,0 +1,7 @@
+Gra8 = ({S, A, B, C, D}, {m, p, n}, S, 
+{S->BA, 
+A->\ | mBA, 
+B->DC, 
+C->\|pDC, 
+D->n}
+)
