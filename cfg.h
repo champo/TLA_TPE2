@@ -36,6 +36,9 @@ char **grammar_new_production( struct grammar *grammar, char left );
 
 void print_grammar( FILE *file, struct grammar *grammar );
 
+void print_parser(FILE* file, struct grammar* grammar);
+
+
 
 #endif /* __CFG_H__ */
 
