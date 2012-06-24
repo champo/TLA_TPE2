@@ -27,11 +27,24 @@ Se hizo una pequeña modificación a la sintaxis de los archivos de gramáticas,
 Comenzamos por adaptar el archivo \texttt{.lex} utilizado en el primer trabajo para las gramaticas.
 Esto requirio adaptar las estructuras de datos que guardan la gramatica procesada, ya que asumian una gramatica regular.
 
-Something, something. Something.
+Luego comenzamos por implmentar una version muy sencilla del generador.
+Esta primer version solo soportaba gramaticas \texttt{LL(0)}.
+Con eso hecho, procedimos a dar soporte para todo tipo de gramatica libre de contexto.
+
+Finalmente, modificamos el algoritmo para que sea capaz de imprimir la lista de producciones utilizadas para analizar la sentencia.
 
 \section{Dificultades}
+Pasar del pseudocodigo generico del analizador a una implementacion funciona no fue trivial.
+La implementacion dada en las diapositivas no realiza el retroceso correctamente.
+De hecho, esa implementacion solo soporta gramaticas \texttt{LL(0)}.
+Por ejemplo, para una gramatica con producciones \texttt{A -> aBd}, \texttt{B -> b | bc}, considera que \texttt{abcd} no es parte del lenguaje generado.
+
+% Agregar algo mas sobre como lo solucionamos
 
 \section{Extensiones}
-Implementar un predicto maybe?
+Una posible extension es generar analizadores predictivos.
+Se podria intentar detectar si el lenguaje es \texttt{LL(k)} para algun \texttt{k} entre 0 y un numero razonable.
+Y con ese conocimiento, generar un analizador predictivo para ese tipo de gramatica.
+En caso de que la gramatica no caiga bajo ninguna de esas categorias, se volveria al uso de retroceso.
 
 \end{document}
