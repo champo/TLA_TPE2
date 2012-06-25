@@ -1,1 +1,1 @@
-G15 = ({S, N}, {x, y, z},S, {S -> xyN, N -> zS|z|λ)
+G15 = ({S, N}, {x, y, z},S, {S -> xyN, N -> zS|z|\})

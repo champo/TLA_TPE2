@@ -1,1 +1,1 @@
-G11 = ({A, B, C, S}, {0, 1},S, {S -> 0A0|1B1|BB, A -> C, B -> S|A, C -> S|/})
+G11 = ({A, B, C, S}, {a, b},S, {S -> aAa|bBb, A -> C, B -> S|A, C -> S|\})
