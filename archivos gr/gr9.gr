@@ -1,0 +1,1 @@
+G9 = ({A, B, C, D}, {a, b, c},A, {A -> aB|c, B -> aA|b, D -> ABC |/})

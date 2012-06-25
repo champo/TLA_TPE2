@@ -1,0 +1,1 @@
+G12 = ({A, B, S}, {a, b},S, {S -> ASB|/, A -> aAS|a, B -> SbS|A|bb})

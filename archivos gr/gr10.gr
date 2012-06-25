@@ -1,0 +1,1 @@
+G10 = ({A, B, C, S}, {a, b},S, {S -> AB|CA, A -> a, B -> BC|AB, C -> aB |b})
