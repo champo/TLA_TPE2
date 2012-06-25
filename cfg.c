@@ -221,7 +221,12 @@ static void print_declarations( FILE *file, struct grammar *grammar ) {
 
         for ( int j = 0; j < prod->num_rights; j++ ) {
 
-            fprintf( file, "\t\"%c->%s\",\n", grammar->non_terminals[ i ], prod->rights[ j ] );
+            if ( prod->rights[j][0] != '\\' ) {
+                fprintf( file, "\t\"%c->%s\",\n", grammar->non_terminals[ i ], prod->rights[ j ] );
+            } else {
+                fprintf( file, "\t\"%c->\\\\\",\n", grammar->non_terminals[ i ] );
+            }
+
         }
     }
 
@@ -297,6 +302,12 @@ static void print_main( FILE *file, struct grammar *grammar ) {
     fprintf( file, "int main( int argc, char **argv ) {\n" );
     fprintf( file, "\n" );
     fprintf( file, "\tint i;\n" );
+    fprintf( file, "\n" );
+    fprintf( file, "\tif ( argc != 2 ) {\n" );
+    fprintf( file, "\n" );
+    fprintf( file, "\t\tprintf( \"Usage:\\n\\tASDR word\\n\" );\n" );
+    fprintf( file, "\t\treturn 1;\n" );
+    fprintf( file, "\t}\n" );
     fprintf( file, "\n" );
     fprintf( file, "\tif ( process_%c( argv[1], (struct production){ \"\", NULL } ) ) {\n", grammar->initial );
     fprintf( file, "\n" );
