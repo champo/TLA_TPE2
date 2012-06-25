@@ -1,0 +1,4 @@
+To compile, just run `make`.
+To generate an analyzer run, `./genASDR input_file`, where the `input_file` points to a `.gr` file.
+Once that is done, do `gcc -o asdr ASDR.c` to compile the analyzer.
+Finally run `./asdr "sentence"` to check whether the sentence belongs to the grammar in `input_file`.
