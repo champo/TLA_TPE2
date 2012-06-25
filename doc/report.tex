@@ -8,7 +8,7 @@
 \usepackage{graphicx}
 \usepackage{tipa}
 
-\title{Conversor de Gramáticas - Autómatas Finitos}
+\title{Generador de Analizador Sintáctico Descendente con Retroceso}
 \author{Civile, Juan \and Sneidermanis, Dario \and Alvaro, Crespo}
 \date{24 de Junio del 2012}
 
@@ -23,30 +23,30 @@
 \section{Consideraciones}
 Se hizo una pequeña modificación a la sintaxis de los archivos de gramáticas, para poder implementarla (los nombres de gramáticas no admiten caracteres `\texttt{=}`).
 
-Si bien el enunciado no presentaba ninguna restriccion al respecto, decidimos utilizar ISO C99 para el codigo generado.
+Si bien el enunciado no presentaba ninguna restricción al respecto, decidimos utilizar ISO C99 para el código generado.
 
 \section{Desarrollo}
-Comenzamos por adaptar el archivo \texttt{.lex} utilizado en el primer trabajo para las gramaticas.
-Esto requirio adaptar las estructuras de datos que guardan la gramatica procesada, ya que asumian una gramatica regular.
+Comenzamos por adaptar el archivo \texttt{.lex} utilizado en el primer trabajo para las gramáticas.
+Esto requirió adaptar las estructuras de datos que guardan la gramática procesada, ya que asumían una gramática regular.
 
-Luego comenzamos por implmentar una version muy sencilla del generador.
-Esta primer version solo soportaba gramaticas \texttt{LL(0)}.
-Con eso hecho, procedimos a dar soporte para todo tipo de gramatica libre de contexto.
+Luego comenzamos por implmentar una versión muy sencilla del generador.
+Esta primer versión solo soportaba gramáticas \texttt{LL(0)}.
+Con eso hecho, procedimos a dar soporte para todo tipo de gramática libre de contexto.
 
 Finalmente, modificamos el algoritmo para que sea capaz de imprimir la lista de producciones utilizadas para analizar la sentencia.
 
 \section{Dificultades}
-Pasar del pseudocodigo generico del analizador a una implementacion funciona no fue trivial.
-La implementacion dada en las diapositivas no realiza el retroceso correctamente.
-De hecho, esa implementacion solo soporta gramaticas \texttt{LL(0)}.
-Por ejemplo, para una gramatica con producciones \texttt{A -> aBd}, \texttt{B -> b | bc}, considera que \texttt{abcd} no es parte del lenguaje generado.
+Pasar del pseudocodigo genérico del analizador a una implementación funcional no fue trivial.
+La implementación dada en las diapositivas no realiza el retroceso correctamente.
+De hecho, esa implementación solo soporta gramáticas \texttt{LL(0)}.
+Por ejemplo, para una gramática con producciones \texttt{A -> aBd}, \texttt{B -> b | bc}, considera que \texttt{abcd} no es parte del lenguaje generado.
 
 % Agregar algo mas sobre como lo solucionamos
 
 \section{Extensiones}
 Una posible extension es generar analizadores predictivos.
-Se podria intentar detectar si el lenguaje es \texttt{LL(k)} para algun \texttt{k} entre 0 y un numero razonable.
-Y con ese conocimiento, generar un analizador predictivo para ese tipo de gramatica.
-En caso de que la gramatica no caiga bajo ninguna de esas categorias, se volveria al uso de retroceso.
+Se podría intentar detectar si el lenguaje es \texttt{LL(k)} para algún \texttt{k} entre 0 y un número razonable.
+Y con ese conocimiento, generar un analizador predictivo para ese tipo de gramática.
+En caso de que la gramática no caiga bajo ninguna de esas categorías, se volvería al uso de retroceso.
 
 \end{document}
