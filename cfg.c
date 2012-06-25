@@ -99,19 +99,6 @@ char **grammar_new_production( struct grammar *grammar, char left ) {
 }
 
 
-//static void add_production( struct grammar *grammar, int left, char right[2] ) {
-//
-//    struct production *production = grammar->productions + left;
-//
-//    for ( int i = 0; i < production->num_rights; i++ )
-//
-//        if ( !memcmp( right, production->rights[i], 2 ) )
-//            return;
-//
-//    memcpy( grammar_new_production( grammar, left ), right, 2 );
-//}
-
-
 void print_grammar( FILE* file, struct grammar *grammar ) {
 
     fprintf( file, "%s = (\n", grammar->name );
@@ -154,7 +141,7 @@ void  gr_switch_to_buffer( void* new_buffer );
 #define YY_BUF_SIZE 16384
 
 
-int main ( int argc, char **argv ) {
+int main( int argc, char **argv ) {
 
     if ( argc < 2 || argc > 3 ) {
 
@@ -174,7 +161,8 @@ int main ( int argc, char **argv ) {
 
     if ( !grlex() ) {
 
-        print_parser(stdout, grlval);
+        print_grammar( stdout, grlval );
+        print_parser( stdout, grlval );
         free_grammar( grlval );
     }
 
@@ -183,109 +171,120 @@ int main ( int argc, char **argv ) {
     return 0;
 }
 
-void print_non_terminal_function(FILE* file, struct grammar* grammar, char non_terminal);
 
-void print_declarations(FILE* file, struct grammar* grammar);
+static void print_declarations( FILE *file, struct grammar *grammar ) {
 
-void print_main(FILE* file, struct grammar* grammar);
+    fprintf( file, "#include <stdio.h>\n" );
+    fprintf( file, "#include <stdlib.h>\n" );
+    fprintf( file, "#include <string.h>\n" );
+    fprintf( file, "#include <ctype.h>\n" );
+    fprintf( file, "#include <stdbool.h>\n" );
+    fprintf( file, "\n" );
+    fprintf( file, "struct production {\n" );
+    fprintf( file, "\tchar *data;\n" );
+    fprintf( file, "\tstruct production *next;\n" );
+    fprintf( file, "};\n" );
+    fprintf( file, "\n" );
 
-void print_process_function(FILE* file, struct grammar* grammar);
+    fprintf( file, "static bool process  ( char *str, struct production prod );\n");
 
-void print_parser(FILE* file, struct grammar* grammar) {
-
-    print_declarations(file, grammar);
-
-    print_main(file, grammar);
-
-    for (int i = 0; i < grlval->num_non_terminals; i++) {
-        print_non_terminal_function(stdout, grammar, grammar->non_terminals[i]);
+    for ( int i = 0; i < grammar->num_non_terminals; i++ ) {
+        fprintf( file, "static bool process_%c( char *str, struct production prod );\n",
+                 grammar->non_terminals[i] );
     }
 
-    print_process_function(stdout, grammar);
+    fprintf( file, "\n" );
+    fprintf( file, "static bool (*non_terminal_function[0x100]) ( char*, struct production ) = {\n" );
 
-}
-
-void print_process_function(FILE* file, struct grammar* grammar) {
-
-    fprintf(file, "char* process(char* string, char* production) {\n");
-
-    fprintf(file, "\tint len = strlen(production);\n");
-    fprintf(file, "\tint i;\n");
-
-    fprintf(file, "\tfor (i = 0; i < len; i++) {\n");
-    fprintf(file, "\t\tif (isupper(production[i])) {\n");
-    fprintf(file, "\t\t\tstring = non_terminal_function[production[i]](string);\n");
-    fprintf(file, "\t\t\tif (string == NULL) {\n");
-    fprintf(file, "\t\t\t\treturn NULL;\n");
-    fprintf(file, "\t\t\t}\n");
-    fprintf(file, "\t\t} else if (*string == production[i]) {\n");
-    fprintf(file, "\t\t\tstring++;\n");
-    fprintf(file, "\t\t} else {\n");
-    fprintf(file, "\t\t\treturn NULL;\n");
-    fprintf(file, "\t\t}\n");
-    fprintf(file, "\t}\n");
-    fprintf(file, "\treturn string;\n");
-    fprintf(file, "}\n");
-
-}
-
-void print_main(FILE* file, struct grammar* grammar) {
-
-    fprintf(file, "int main(int argc, char *argv[]) {\n");
-    fprintf(file, "\tchar* res;\n");
-
-    for (int i = 0; i < grammar->num_non_terminals; i++) {
-
-        char c = grammar->non_terminals[i];
-        fprintf(file, "\tnon_terminal_function[%d] = process_%c;\n", c, c);
-
+    for ( int i = 0; i < grammar->num_non_terminals; i++ ) {
+        fprintf( file, "\t['%c'] = process_%c,\n", grammar->non_terminals[i], grammar->non_terminals[i] );
     }
 
-    fprintf(file, "\tres = process_%c(argv[1]);\n", grammar->initial);
-    fprintf(file, "\tif (res != NULL && *res == 0) {\n");
-    fprintf(file, "\t\tprintf(\"%%s belongs.\\n\", argv[1]);\n");
-    fprintf(file, "\t} else {\n");
-    fprintf(file, "\t\tprintf(\"%%s doesn't belong\\n\", argv[1]);\n");
-    fprintf(file, "\t}\n");
-
-    fprintf(file, "\treturn 0;\n");
-    fprintf(file, "}\n");
-}
-
-void print_declarations(FILE* file, struct grammar* grammar) {
-
-    fprintf(file, "#include <stdio.h>\n");
-    fprintf(file, "#include <stdlib.h>\n");
-    fprintf(file, "#include <string.h>\n");
-    fprintf(file, "#include <ctype.h>\n");
-
-    fprintf(file, "char* process(char* string, char* production);\n");
-
-    for (int i = 0; i < grammar->num_non_terminals; i++) {
-        fprintf(file, "char* process_%c(char* string);\n", grammar->non_terminals[i]);
-    }
-
-    fprintf(file, "static char* (*non_terminal_function[0x100])(char*);\n");
+    fprintf( file, "};\n" );
 }
 
 
-void print_non_terminal_function(FILE* file, struct grammar* grammar, char non_terminal) {
+static void print_process_function( FILE *file, struct grammar *grammar ) {
 
-    struct production* production = &grammar->productions[(int)non_terminal];
+    fprintf( file, "\n" );
+    fprintf( file, "\n" );
+    fprintf( file, "static bool process( char *str, struct production prod ) {\n");
+    fprintf( file, "\n" );
+    fprintf( file, "\twhile ( *prod.data ) {\n" );
+    fprintf( file, "\n" );
+    fprintf( file, "\t\tchar c = *prod.data++;\n" );
+    fprintf( file, "\n" );
+    fprintf( file, "\t\tif ( isupper( c ) ) {\n" );
+    fprintf( file, "\t\t\treturn non_terminal_function[ c ]( str, prod );\n" );
+    fprintf( file, "\t\t}\n" );
+    fprintf( file, "\n" );
+    fprintf( file, "\t\tif ( c == '\\\\' ) {\n" );
+    fprintf( file, "\t\t\tcontinue;\n" );
+    fprintf( file, "\t\t}\n" );
+    fprintf( file, "\n" );
+    fprintf( file, "\t\tif ( *str++ != c ) {\n" );
+    fprintf( file, "\t\t\treturn false;\n" );
+    fprintf( file, "\t\t}\n" );
+    fprintf( file, "\t}\n" );
+    fprintf( file, "\n" );
+    fprintf( file, "\tif ( prod.next ) {\n" );
+    fprintf( file, "\t\treturn process( str, *prod.next );\n" );
+    fprintf( file, "\t}\n" );
+    fprintf( file, "\n" );
+    fprintf( file, "\treturn !*str;\n" );
+    fprintf( file, "}\n" );
+}
 
-    fprintf(file, "char* process_%c(char* string) {\n", non_terminal);
-    fprintf(file, "\tchar* n = NULL;\n");
 
-    for (int i = 0; i < production->num_rights; i++) {
+static void print_non_terminal_function( FILE *file, struct grammar *grammar, int non_terminal ) {
 
-        fprintf(file, "\tif ((n = process(string, \"%s\")) != NULL) {\n", production->rights[i]);
-        fprintf(file, "\t\treturn n;\n");
-        fprintf(file, "\t}\n");
+    struct production* production = &grammar->productions[ non_terminal ];
 
+    fprintf( file, "\n" );
+    fprintf( file, "\n" );
+    fprintf( file, "bool process_%c( char *str, struct production prod ) {\n", non_terminal );
+    fprintf( file, "\n" );
+
+    for ( int i = 0; i < production->num_rights; i++ ) {
+
+        fprintf( file, "\tif ( process( str, (struct production){ \"%s\", &prod } ) ) {\n", production->rights[i] );
+        fprintf( file, "\t\treturn true;\n" );
+        fprintf( file, "\t}\n" );
+        fprintf( file, "\n" );
     }
 
-    fprintf(file, "\treturn NULL;\n");
-    fprintf(file, "}\n");
+    fprintf( file, "\treturn false;\n" );
+    fprintf( file, "}\n" );
+}
 
+
+static void print_main( FILE *file, struct grammar *grammar ) {
+
+    fprintf( file, "\n" );
+    fprintf( file, "\n" );
+    fprintf( file, "int main( int argc, char **argv ) {\n" );
+    fprintf( file, "\n" );
+    fprintf( file, "\tif ( process_%c( argv[1], (struct production){ \"\", NULL } ) ) {\n", grammar->initial );
+    fprintf( file, "\t\tprintf( \"%%s belongs.\\n\", argv[1] );\n" );
+    fprintf( file, "\t} else {\n" );
+    fprintf( file, "\t\tprintf( \"%%s doesn't belong.\\n\", argv[1] );\n" );
+    fprintf( file, "\t}\n" );
+    fprintf( file, "\n" );
+    fprintf( file, "\treturn 0;\n" );
+    fprintf( file, "}\n" );
+}
+
+
+void print_parser( FILE *file, struct grammar *grammar ) {
+
+    print_declarations( file, grammar );
+
+    print_process_function( file, grammar );
+
+    for ( int i = 0; i < grlval->num_non_terminals; i++ ) {
+        print_non_terminal_function( file, grammar, grammar->non_terminals[i] );
+    }
+
+    print_main( file, grammar );
 }
 
