@@ -95,6 +95,8 @@ char **grammar_new_production( struct grammar *grammar, char left ) {
         production->rights = rights;
     }
 
+    grammar->num_productions++;
+
     return production->rights + production->num_rights++;
 }
 
@@ -208,6 +210,22 @@ static void print_declarations( FILE *file, struct grammar *grammar ) {
     }
 
     fprintf( file, "};\n" );
+    fprintf( file, "\n" );
+    fprintf( file, "static int productions_count[ %d ] = {0};\n", grammar->num_productions );
+    fprintf( file, "\n" );
+    fprintf( file, "static const char *productions[] = {\n" );
+
+    for ( int i = 0; i < grammar->num_non_terminals; i++ ) {
+
+        struct production *prod = grammar->productions + grammar->non_terminals[ i ];
+
+        for ( int j = 0; j < prod->num_rights; j++ ) {
+
+            fprintf( file, "\t\"%c->%s\",\n", grammar->non_terminals[ i ], prod->rights[ j ] );
+        }
+    }
+
+    fprintf( file, "};\n" );
 }
 
 
@@ -243,7 +261,7 @@ static void print_process_function( FILE *file, struct grammar *grammar ) {
 }
 
 
-static void print_non_terminal_function( FILE *file, struct grammar *grammar, int non_terminal ) {
+static void print_non_terminal_function( FILE *file, struct grammar *grammar, int non_terminal, int *pos ) {
 
     struct production* production = &grammar->productions[ non_terminal ];
 
@@ -254,7 +272,14 @@ static void print_non_terminal_function( FILE *file, struct grammar *grammar, in
 
     for ( int i = 0; i < production->num_rights; i++ ) {
 
-        fprintf( file, "\tif ( process( str, (struct production){ \"%s\", &prod } ) ) {\n", production->rights[i] );
+        if ( production->rights[i][0] != '\\' ) {
+            fprintf( file, "\tif ( process( str, (struct production){ \"%s\", &prod } ) ) {\n",
+                     production->rights[i] );
+        } else {
+            fprintf( file, "\tif ( process( str, (struct production){ \"\\\\\", &prod } ) ) {\n" );
+        }
+
+        fprintf( file, "\t\tproductions_count[ %d ]++;\n", (*pos)++ );
         fprintf( file, "\t\treturn true;\n" );
         fprintf( file, "\t}\n" );
         fprintf( file, "\n" );
@@ -271,9 +296,21 @@ static void print_main( FILE *file, struct grammar *grammar ) {
     fprintf( file, "\n" );
     fprintf( file, "int main( int argc, char **argv ) {\n" );
     fprintf( file, "\n" );
+    fprintf( file, "\tint i;\n" );
+    fprintf( file, "\n" );
     fprintf( file, "\tif ( process_%c( argv[1], (struct production){ \"\", NULL } ) ) {\n", grammar->initial );
+    fprintf( file, "\n" );
     fprintf( file, "\t\tprintf( \"%%s belongs.\\n\", argv[1] );\n" );
+    fprintf( file, "\t\tprintf( \"The productions used were:\\n\" );\n" );
+    fprintf( file, "\n" );
+    fprintf( file, "\t\tfor ( i = 0; i < %d; i++ ) {\n", grammar->num_productions );
+    fprintf( file, "\t\t\tif ( productions_count[ i ] ) {\n" );
+    fprintf( file, "\t\t\t\tprintf( \"\\t%%s\\n\", productions[ i ] );\n" );
+    fprintf( file, "\t\t\t}\n" );
+    fprintf( file, "\t\t}\n" );
+    fprintf( file, "\n" );
     fprintf( file, "\t} else {\n" );
+    fprintf( file, "\n" );
     fprintf( file, "\t\tprintf( \"%%s doesn't belong.\\n\", argv[1] );\n" );
     fprintf( file, "\t}\n" );
     fprintf( file, "\n" );
@@ -288,8 +325,8 @@ void print_parser( FILE *file, struct grammar *grammar ) {
 
     print_process_function( file, grammar );
 
-    for ( int i = 0; i < grlval->num_non_terminals; i++ ) {
-        print_non_terminal_function( file, grammar, grammar->non_terminals[i] );
+    for ( int i = 0, j = 0; i < grlval->num_non_terminals; i++ ) {
+        print_non_terminal_function( file, grammar, grammar->non_terminals[i], &j );
     }
 
     print_main( file, grammar );
