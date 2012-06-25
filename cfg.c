@@ -157,12 +157,19 @@ int main( int argc, char **argv ) {
         return 1;
     }
 
+    FILE* output = fopen( argc == 3 ? argv[2] : "ASDR.c", "w" );
+
+    if ( !output ) {
+
+        printf( "Error opening file\n" );
+        return 1;
+    }
+
     gr_switch_to_buffer( gr_create_buffer( file, YY_BUF_SIZE ) );
 
     if ( !grlex() ) {
 
-        print_grammar( stdout, grlval );
-        print_parser( stdout, grlval );
+        print_parser( output, grlval );
         free_grammar( grlval );
     }
 
